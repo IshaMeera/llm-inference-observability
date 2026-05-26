@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+
+  chatbot:
+
+    build:
+      context: ./chatbot-service
+
+    ports:
+      - "5000:5000"
+
+    env_file:
+      - ./chatbot-service/.env
+
+    depends_on:
+      - ingestion
+      - mongo
+
+  ingestion:
+
+    build:
+      context: ./ingestion-service
+
+    ports:
+      - "5001:5001"
+
+    env_file:
+      - ./ingestion-service/.env
+
+    depends_on:
+      - mongo
+
+  mongo:
+
+    image: mongo
+
+    ports:
+      - "27017:27017"
+
+    volumes:
+      - mongo-data:/data/db
+
+
+volumes:
+
+  mongo-data:
