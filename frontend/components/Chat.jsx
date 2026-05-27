@@ -1,17 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { sendMessage, streamMessage } from "../services/api";
 import ReactMarkdown from "react-markdown";
+import { getChatHistory } from "../services/api.js";
 
 export default function Chat() {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [sessionId] = useState(crypto.randomUUID());
+  const [sessionId, setSessionId] = useState("");
+  const [controller, setController] = useState(null);
+
+  useEffect(() => {
+    console.log("Session effect");
+    const existing = localStorage.getItem("sessionId");
+    if(existing){
+      setSessionId(existing);
+    }else{
+      const id = crypto.randomUUID();
+      localStorage.setItem("sessionId", id);
+      setSessionId(id);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("sessionId", sessionId);
+  }, [sessionId]);
+
+  useEffect(() => {
+    console.log("load effect");
+    if(!sessionId) return;
+    async function load(){
+      console.log("Calling api");
+      try{
+        const history = await getChatHistory(sessionId);
+        console.log("LOaded history", history);
+        const restored = (history || []).map(m=>({role: m.role, text: m.content}));
+        console.log("Restored", restored);
+        setMessages(restored);
+      }catch(err){
+        console.error("Failed to load chat history:", err);
+      }
+    }
+    load();
+  }, [sessionId]);
 
   async function handleSend() {
-    if (!message.trim() || loading) return;
+    if (!message.trim() || loading || !sessionId) return;
 
     const userText = message;
 
@@ -31,6 +67,8 @@ export default function Chat() {
     setLoading(true);
 
    try {
+        const abortController = new AbortController();
+        setController(abortController);
         await streamMessage(
           userText,
           sessionId,
@@ -47,7 +85,8 @@ export default function Chat() {
               return updated;
 
             });
-          }
+          },
+          abortController.signal
         );
 
       } catch (error) {
@@ -76,6 +115,13 @@ export default function Chat() {
 
       }
     }
+
+  function handleCancel(){
+    if(!controller) return;
+    controller.abort();
+    setLoading(false);
+    setController(null);
+  }
 
   function handleKeyDown(e) {
     if (
@@ -126,7 +172,23 @@ export default function Chat() {
                 text-white
                 "
               />
+              {loading ? (
 
+                <button
+                  onClick={
+                    handleCancel
+                  }
+                className="
+                bg-red-500
+                text-white
+                px-5
+                py-2
+                rounded-full
+                "
+              >
+                Stop
+              </button>
+              ) : (
               <button
                 onClick={
                   handleSend
@@ -143,7 +205,7 @@ export default function Chat() {
               >
                 Send
               </button>
-
+              )}
             </div>
 
           </div>
@@ -241,21 +303,47 @@ export default function Chat() {
                   "
                 />
 
-                <button
-                  onClick={
-                    handleSend
-                  }
+                {loading ? (
 
-                  className="
-                  bg-white
-                  text-black
-                  px-5
-                  py-2
-                  rounded-full
-                  "
+                <button
+                onClick={
+                handleCancel
+                }
+
+                className="
+                bg-red-500
+                text-white
+                px-5
+                py-2
+                rounded-full
+                "
                 >
-                  Send
+
+                Stop
+
                 </button>
+
+                ) : (
+
+                <button
+                onClick={
+                handleSend
+                }
+
+                className="
+                bg-white
+                text-black
+                px-5
+                py-2
+                rounded-full
+                "
+                >
+
+                Send
+
+                </button>
+
+                )}
 
               </div>
 

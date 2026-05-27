@@ -47,6 +47,8 @@ The platform captures inference metadata in near real time, stores conversation 
 - PII redaction
 - Docker Compose setup
 - Streaming support
+- Session storage
+- Cancel and Resume conversation
 
 ---
 

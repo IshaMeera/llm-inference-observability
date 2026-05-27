@@ -15,8 +15,9 @@ app.get("/health", (req, res) => {
   console.log("Health check endpoint hit");
 });
 
+// app.use("/chat", chatRoutes);
+// app.use("/stream", chatRoutes);
 app.use("/chat", chatRoutes);
-app.use("/stream", chatRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

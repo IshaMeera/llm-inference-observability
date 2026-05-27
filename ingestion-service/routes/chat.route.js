@@ -14,4 +14,14 @@ router.post("/", async (req, res) => {
     }
 });
 
+router.get("/:sessionId", async(req, res) => {
+        try{
+        const chats = await Chat.find({ sessionId: req.params.sessionId }).sort({ createdAt: 1 });
+        return res.json(chats);
+        }catch(err){
+            console.error("Error fetching chat history:", err);
+            return res.status(500).json({ error: "Failed to fetch chat history" });
+        }
+    }
+);
 module.exports = router;

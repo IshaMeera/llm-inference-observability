@@ -66,7 +66,7 @@ router.post("/stream", async (req, res) => {
         saveMessage(sessionId, "assistant", finalResponse);
 
         await trackInference(
-             async () => ({finalResponse, tokenUsage: 0
+             async () => ({text: finalResponse, tokenUsage: 0
         }),
         {
             provider,
@@ -85,4 +85,20 @@ router.post("/stream", async (req, res) => {
     }
 });
 
+router.get("/:sessionId", async(req, res) => {
+        try{
+            const response = await fetch(`${process.env.CHAT_INGESTION_SERVICE_URL}/${req.params.sessionId}`);
+            if(!response.ok){
+                throw new Error("Failed to fetch history");
+            }
+
+            const chats = await response.json();
+            return res.json(chats);
+        
+        }catch(err){
+            console.error("Error fetching chat history", err);
+            return res.status(500).json({error: "Failed to fetch chat history"});
+        }
+    }
+);
 module.exports = router;
