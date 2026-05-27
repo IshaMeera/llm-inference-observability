@@ -13,6 +13,14 @@ const analyticsRoutes = require('./routes/analytics.route.js');
 
 connectDB();
 
+app.get("/health", (req, res) => {
+console.log("hit");
+   res.json({
+    ok: true,
+  });
+  console.log("Ingestion health check endpoint hit");
+});
+
 app.use('/logs', logRoutes);
 app.use('/chats', chatRoutes);
 app.use('/analytics', analyticsRoutes);
