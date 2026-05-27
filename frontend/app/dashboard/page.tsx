@@ -16,7 +16,31 @@ from "recharts";
 
 export default function Dashboard(){
 
-const[ data, setData ]= useState( null );
+type Analytics = {
+  total: number;
+  avgLatency: number;
+  errorRate: number;
+  throughput: number;
+  latencyTrend: {
+    timestamp: string;
+    latency: number;
+  }[];
+  recentLogs: {
+    timestamp: string;
+    model: string;
+    status: string;
+    latency?: number;
+  }[];
+  providerUsage: {
+    provider: string;
+    count: number;
+  }[];
+  };
+
+  const [data, setData] =
+  useState<Analytics | null>(
+  null
+);
 
 useEffect(() => {
 
@@ -372,7 +396,7 @@ Provider Usage
 
 }
 
-function Card({ title, value }) {
+function Card({ title, value }:{title: String; value: String|number}) {
 
   return (
 
